@@ -2,6 +2,7 @@ import customtkinter as ctk
 from tkinter import filedialog, messagebox
 from watcher import FileWatcher
 from logger import log_event
+import os
 
 class FileWatcherApp:
     def __init__(self):
@@ -35,7 +36,13 @@ class FileWatcherApp:
     def browse(self):
         folder = filedialog.askdirectory()
         if folder:
-            self.path_var.set(folder)
+            if os.path.exists(folder):
+                self.path_var.set(folder)
+            else:
+                messagebox.showerror("Error", "Selected folder does not exist!")
+                self.path_var.set("")
+        else:
+            self.path_var.set("")
 
     def toggle_watch(self):
         if self.watcher and self.watcher.running:
@@ -48,6 +55,11 @@ class FileWatcherApp:
         if not folder:
             messagebox.showerror("Error", "Please select a folder first.")
             return
+    
+        if not os.path.exists(folder):
+            messagebox.showerror("Error", "Selected folder no longer exists!")
+            return
+        
         self.watcher = FileWatcher(folder, self.on_event)
         self.watcher.start()
         self.start_btn.configure(text="Stop Watching")
