@@ -12,95 +12,117 @@ class FileWatcherApp:
 
         self.root = ctk.CTk()
         self.root.title("File Stalker")
-        self.root.geometry("850x550")
+        self.root.geometry("950x550")
         self.watcher = None
+        self.paths = []
 
-        # ===== TOP FRAME (buttons) =====
-        self.top_frame = ctk.CTkFrame(self.root)
-        self.top_frame.pack(fill="x", padx=10, pady=(10, 5))
+        # ===== MAIN CONTAINER (split layout) =====
+        self.main_frame = ctk.CTkFrame(self.root)
+        self.main_frame.pack(fill="both", expand=True)
 
+        # ===== NAVIGATION BAR (LEFT SIDE) =====
+        self.navbar = ctk.CTkFrame(self.main_frame, width=200, corner_radius=0)
+        self.navbar.pack(side="left", fill="y")
 
-        self.start_btn = ctk.CTkButton(self.top_frame, text="Start Watching", command=self.toggle_watch, width=250)
+        ctk.CTkLabel(self.navbar, text="📁 File Stalker", font=("Arial", 18, "bold")).pack(pady=15)
+
+        # Nav buttons
+        self.dashboard_btn = ctk.CTkButton(self.navbar, text="🏠 Dashboard", width=180, command=self.show_dashboard)
+        self.dashboard_btn.pack(pady=5)
+
+        self.logs_btn = ctk.CTkButton(self.navbar, text="📜 Logs", width=180, command=self.show_logs)
+        self.logs_btn.pack(pady=5)
+
+        self.settings_btn = ctk.CTkButton(self.navbar, text="⚙️ Settings", width=180, command=self.show_settings)
+        self.settings_btn.pack(pady=5)
+
+        # ===== MAIN CONTENT AREA =====
+        self.content_frame = ctk.CTkFrame(self.main_frame)
+        self.content_frame.pack(side="right", fill="both", expand=True)
+
+        self.show_dashboard()  # Default view
+
+    # ========== PAGE 1: DASHBOARD ==========
+    def show_dashboard(self):
+        self.clear_content()
+
+        top_frame = ctk.CTkFrame(self.content_frame)
+        top_frame.pack(fill="x", padx=10, pady=(10, 5))
+
+        self.start_btn = ctk.CTkButton(top_frame, text="Start Watching", command=self.toggle_watch, width=250)
         self.start_btn.pack(side="left", padx=5)
 
-        # ===== MIDDLE FRAME (path + browse) =====
-        self.middle_frame = ctk.CTkFrame(self.root)
-        self.middle_frame.pack(fill="x", padx=10, pady=(5, 10))
+        middle_frame = ctk.CTkFrame(self.content_frame)
+        middle_frame.pack(fill="x", padx=10, pady=(5, 10))
 
-        self.paths = []  # list to store multiple folders
         self.path_var = ctk.StringVar(value="No folders selected")
-        self.path_entry = ctk.CTkEntry(
-            self.middle_frame,
-            textvariable=self.path_var,
-            width=600,
-            placeholder_text="Select folder to watch..."
-        )
+        self.path_entry = ctk.CTkEntry(middle_frame, textvariable=self.path_var, width=600, placeholder_text="Select folder to watch...")
         self.path_entry.pack(side="left", padx=5, pady=5)
 
-        self.browse_btn = ctk.CTkButton(self.middle_frame, text="Browse", command=self.browse)
-        self.browse_btn.pack(side="left", padx=5)
+        browse_btn = ctk.CTkButton(middle_frame, text="Browse", command=self.browse)
+        browse_btn.pack(side="left", padx=5)
 
-        # ===== TEXT AREA (logs) =====
-        self.textbox = ctk.CTkTextbox(self.root, width=800, height=400)
+        self.textbox = ctk.CTkTextbox(self.content_frame, width=800, height=400)
         self.textbox.pack(padx=10, pady=(5, 10), fill="both", expand=True)
 
+    # ========== PAGE 2: LOGS ==========
+    def show_logs(self):
+        self.clear_content()
+        ctk.CTkLabel(self.content_frame, text="📜 View Log Files", font=("Arial", 18, "bold")).pack(pady=10)
+        log_box = ctk.CTkTextbox(self.content_frame, width=800, height=400)
+        log_box.pack(pady=10)
+        try:
+            with open("logs/fs_events.jsonl", "r") as f:
+                log_box.insert("end", f.read())
+        except FileNotFoundError:
+            log_box.insert("end", "No logs found yet.")
 
+    # ========== PAGE 3: SETTINGS ==========
+    def show_settings(self):
+        self.clear_content()
+        ctk.CTkLabel(self.content_frame, text="⚙️ Settings", font=("Arial", 18, "bold")).pack(pady=10)
+
+        ctk.CTkButton(self.content_frame, text="Switch Theme", command=self.toggle_theme).pack(pady=10)
+
+    # ========== COMMON FUNCTIONS ==========
+    def clear_content(self):
+        """Clear main content area before switching page"""
+        for widget in self.content_frame.winfo_children():
+            widget.destroy()
+
+    def toggle_theme(self):
+        current = ctk.get_appearance_mode()
+        ctk.set_appearance_mode("dark" if current == "Light" else "light")
 
     def browse(self):
-        paths = filedialog.askdirectory(mustexist=True)
-        if paths:
-            # Append if not already added
-            if paths not in self.paths:
-                self.paths.append(paths)
-            # Show all paths joined by commas
+        path = filedialog.askdirectory(mustexist=True)
+        if path and path not in self.paths:
+            self.paths.append(path)
             self.path_var.set(", ".join(self.paths))
 
     def toggle_watch(self):
         if self.watcher and self.watcher.running:
-            # Stop watching
             self.watcher.stop()
             self.watcher = None
             self.start_btn.configure(text="Start Watching")
             self.textbox.insert("end", "🛑 Stopped watching folders.\n")
             self.textbox.see("end")
         else:
-            # Start watching
             if not self.paths:
                 messagebox.showwarning("No Folders", "Please select at least one folder.")
                 return
-
             self.watcher = MultiFileWatcher(self.paths, callback=self.on_event)
             self.watcher.start()
             self.start_btn.configure(text="Stop Watching")
             self.textbox.insert("end", "✅ Started watching selected folders...\n")
             self.textbox.see("end")
 
-    def start_watch(self):
-        folder = self.path_var.get().strip()
-        if not folder:
-            messagebox.showerror("Error", "Please select a folder first.")
-            return
-
-        if not os.path.exists(folder):
-            messagebox.showerror("Error", "Selected folder no longer exists!")
-            return
-
-        self.watcher = MultiFileWatcher([folder], self.on_event)  # Adjusted to use MultiFileWatcher
-        self.watcher.start()
-        self.start_btn.configure(text="Stop Watching")
-        messagebox.showinfo("Started", f"Now watching: {folder}")
-
-    def stop_watch(self):
-        if self.watcher:
-            self.watcher.stop()
-            self.start_btn.configure(text="Start Watching")
-            messagebox.showinfo("Stopped", "Stopped watching folder.")
-
-    def on_event(self, event_type, path):
+    def on_event(self, event_type, path, details=None):
         line = f"[{event_type.upper()}] {path}\n"
-        self.textbox.insert("end", line)
-        self.textbox.see("end")
-        log_event(event_type, path)
+        if hasattr(self, "textbox"):
+            self.textbox.insert("end", line)
+            self.textbox.see("end")
+        log_event(event_type, path, details)
 
     def run(self):
         self.root.mainloop()
