@@ -2,7 +2,6 @@ import customtkinter as ctk
 from tkinter import filedialog, messagebox
 from watcher import MultiFileWatcher
 from logger import log_event
-from plyer import notification
 import os
 
 class FileWatcherApp:
@@ -27,13 +26,13 @@ class FileWatcherApp:
         ctk.CTkLabel(self.navbar, text="📁 File Stalker", font=("Arial", 18, "bold")).pack(pady=15)
 
         # Nav buttons
-        self.dashboard_btn = ctk.CTkButton(self.navbar, text="🏠 Dashboard", width=180, command=self.show_dashboard)
+        self.dashboard_btn = ctk.CTkButton(self.navbar, text="🏠 HOME", width=180, command=self.show_dashboard)
         self.dashboard_btn.pack(pady=5)
 
-        self.logs_btn = ctk.CTkButton(self.navbar, text="📜 Logs", width=180, command=self.show_logs)
+        self.logs_btn = ctk.CTkButton(self.navbar, text="📜 LOGS", width=180, command=self.show_logs)
         self.logs_btn.pack(pady=5)
 
-        self.settings_btn = ctk.CTkButton(self.navbar, text="⚙️ Settings", width=180, command=self.show_settings)
+        self.settings_btn = ctk.CTkButton(self.navbar, text="⚙️ SETTINGS", width=180, command=self.show_settings)
         self.settings_btn.pack(pady=5)
 
         # ===== MAIN CONTENT AREA =====
