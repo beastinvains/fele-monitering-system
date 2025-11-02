@@ -7,6 +7,18 @@ from pathlib import Path
 LOG_DIR = "logs"
 LOGFILE = os.path.join(LOG_DIR, "fs_events.jsonl")
 
+def set_log_dir(new_dir):
+    """Change log directory and ensure it exists. Returns new logfile path."""
+    global LOG_DIR, LOGFILE
+    LOG_DIR = new_dir
+    Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
+    LOGFILE = os.path.join(LOG_DIR, "fs_events.jsonl")
+    return LOGFILE
+
+def get_log_file():
+    """Return current logfile path."""
+    return LOGFILE
+
 def log_event(event_type, path, details=None):
     try:
         # Create logs directory if it doesn't exist
