@@ -11,7 +11,7 @@ class FileWatcherApp:
         ctk.set_default_color_theme("green")
 
         self.root = ctk.CTk()
-        self.root.title("File Stalker")
+        self.root.title("File Sentinel")
         self.root.geometry("950x700")
         self.watcher = None
         self.paths = []
@@ -24,7 +24,7 @@ class FileWatcherApp:
         self.navbar = ctk.CTkFrame(self.main_frame, width=200, corner_radius=0)
         self.navbar.pack(side="left", fill="y")
 
-        ctk.CTkLabel(self.navbar, text="📁 File Stalker", font=("Arial", 18, "bold")).pack(pady=15)
+        ctk.CTkLabel(self.navbar, text="📁 File Sentinel", font=("Arial", 18, "bold")).pack(pady=15)
 
         # Nav buttons
         self.dashboard_btn = ctk.CTkButton(self.navbar, text="🏠 HOME", width=180, command=self.show_dashboard)
